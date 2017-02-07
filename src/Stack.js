@@ -62,7 +62,7 @@ angular.module(modName, ['card'])
      */
     stack.createCard = (element) => {
 
-      const card = Card.card(stack, element);
+      const card = Card(stack, element);
       const events = [
         'throwout',
         'throwoutend',
@@ -126,9 +126,7 @@ angular.module(modName, ['card'])
     return stack;
   };
 
-  return {
-    stack: Stack
-  };
+  return Stack;
 }]);
 
 export default modName;

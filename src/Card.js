@@ -509,9 +509,7 @@ Card.rotation = (coordinateX, coordinateY, element, maxRotation) => {
 Card.THROW_IN = 'in';
 Card.THROW_OUT = 'out';
 
-return {
-  card: Card
-};
+return Card;
 }]);
 
 

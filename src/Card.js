@@ -53,7 +53,6 @@ const Card = (stack, targetElement) => {
   let lastTranslate;
   let lastX;
   let lastY;
-  let mc;
   let onSpringUpdate;
   let springSystem;
   let springThrowIn;
@@ -61,6 +60,7 @@ const Card = (stack, targetElement) => {
   let throwDirectionToEventName;
   let throwOutDistance;
   let throwWhere;
+  let startCoords;
 
   const construct = () => {
     card = {};
@@ -90,25 +90,25 @@ const Card = (stack, targetElement) => {
 
     throwOutDistance = config.throwOutDistance(config.minThrowOutDistance, config.maxThrowOutDistance);
 
-    // mc = new Hammer.Manager(targetElement, {
-    //   recognizers: [
-    //     [
-    //       Hammer.Pan,
-    //       {
-    //         threshold: 2
-    //       }
-    //     ]
-    //   ]
-    // });
-
     $swipe.bind(angular.element(targetElement), {
-      'start': _ => isPanning = true,
+      'start': coords => {
+        startCoords = coords;
+        isPanning = true;
+      },
       'move': coords => {
-        eventEmitter.trigger('panmove', coords);
+        let deltaCoords = {
+          x: coords.x - startCoords.x,
+          y: coords.y - startCoords.y
+        }
+        eventEmitter.trigger('panmove', deltaCoords);
       },
       'end': coords => {
         isPanning = false;
-        eventEmitter.trigger('panend', coords);
+        let deltaCoords = {
+          x: coords.x - startCoords.x,
+          y: coords.y - startCoords.y
+        }
+        eventEmitter.trigger('panend', deltaCoords);
       }
     });
 
@@ -116,7 +116,6 @@ const Card = (stack, targetElement) => {
 
     eventEmitter.on('panstart', () => {
       Card.appendToParent(targetElement);
-
       eventEmitter.trigger('dragstart', {
         target: targetElement
       });
@@ -135,16 +134,16 @@ const Card = (stack, targetElement) => {
       })();
     });
 
-    eventEmitter.on('panmove', (event) => {
-      currentX = event.deltaX;
-      currentY = event.deltaY;
+    eventEmitter.on('panmove', (coords) => {
+      currentX = coords.x;
+      currentY = coords.y;
     });
 
-    eventEmitter.on('panend', (event) => {
+    eventEmitter.on('panend', (coords) => {
       isDraging = false;
 
-      const coordinateX = lastTranslate.coordinateX + event.deltaX;
-      const coordinateY = lastTranslate.coordinateY + event.deltaY;
+      const coordinateX = lastTranslate.coordinateX + coords.x;
+      const coordinateY = lastTranslate.coordinateY + coords.y;
 
       const isThrowOut = config.isThrowOut(
         coordinateX,
@@ -195,12 +194,6 @@ const Card = (stack, targetElement) => {
         targetElement.addEventListener('touchend', () => {
           dragging = false;
         });
-
-        global.addEventListener('touchmove', (event) => {
-          if (dragging) {
-            event.preventDefault();
-          }
-        });
       })();
     } else {
       targetElement.addEventListener('mousedown', () => {
@@ -215,19 +208,6 @@ const Card = (stack, targetElement) => {
         }
       });
     }
-
-    mc.on('panstart', (event) => {
-      isPanning = true;
-    });
-
-    mc.on('panmove', (event) => {
-      eventEmitter.trigger('panmove', event);
-    });
-
-    mc.on('panend', (event) => {
-      isPanning = false;
-      eventEmitter.trigger('panend', event);
-    });
 
     springThrowIn.addListener({
       onSpringAtRest: () => {

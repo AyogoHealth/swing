@@ -14,11 +14,11 @@ const elementChildren = (element) => {
 };
 
 /**
- * @see http://stackoverflow.com/questions/4817029/whats-the-best-way-to-detect-a-touch-screen-device-using-javascript/4819886#4819886
+ * Chrome supports touch events so we're just checking screen size here
  * @returns {boolean}
  */
 const isTouchDevice = () => {
-  return 'ontouchstart' in window || navigator.msMaxTouchPoints;
+  return window.outerWidth < 769;
 };
 
 export {

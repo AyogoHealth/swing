@@ -1,4 +1,3 @@
-import _ from 'lodash';
 
 /**
  * Return direct children elements.
@@ -8,9 +7,7 @@ import _ from 'lodash';
  * @returns {Array}
  */
 const elementChildren = (element) => {
-  return _.filter(element.childNodes, {
-    nodeType: 1
-  });
+  return Array.from(element.childNodes).filter(elem => elem.nodeType === 1);
 };
 
 /**

@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import Sister from 'sister';
 import * as angular from 'angular';
 import * as ngTouch from 'angular-touch';
@@ -406,7 +405,7 @@ Card.makeConfig = (config = {}) => {
     transform: Card.transform
   };
 
-  return _.assign({}, defaultConfig, config);
+  return Object.assign({}, defaultConfig, config);
 };
 
 /**
@@ -487,7 +486,7 @@ Card.isThrowOut = (xOffset, yOffset, element, throwOutConfidence) => {
  * @returns {number}
  */
 Card.throwOutDistance = (min, max) => {
-  return _.random(min, max);
+  return Math.random() * (max - min) + min;
 };
 
 /**

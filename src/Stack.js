@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import Sister from 'sister';
 import rebound from 'rebound';
 import Card from './Card';
@@ -118,9 +117,10 @@ angular.module(modName, ['card'])
      * @returns {null}
      */
     stack.destroyCard = (card) => {
-      return _.remove(index, {
-        card
-      });
+      while(index.findIndex(elem => card.id === elem.id) > -1) {
+        index.splice(index.findIndex(elem => card.id === elem.id), 1);
+      }
+      return index;
     };
 
     return stack;

@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import Sister from 'sister';
-import Hammer from 'hammerjs';
+import * as angular from 'angular';
+import * as ngTouch from 'angular-touch';
 import rebound from 'rebound';
 import vendorPrefix from 'vendor-prefix';
 import raf from 'raf';
@@ -10,7 +11,10 @@ import {
   isTouchDevice
 } from './utilities';
 
-/**
+const modName = 'card';
+angular.module(modName, ['ngTouch'])
+.factory(modName, ['$swipe', function($swipe) {
+  /**
  * @param {number} fromX
  * @param {number} fromY
  * @param {Direction[]} allowedDirections
@@ -86,15 +90,26 @@ const Card = (stack, targetElement) => {
 
     throwOutDistance = config.throwOutDistance(config.minThrowOutDistance, config.maxThrowOutDistance);
 
-    mc = new Hammer.Manager(targetElement, {
-      recognizers: [
-        [
-          Hammer.Pan,
-          {
-            threshold: 2
-          }
-        ]
-      ]
+    // mc = new Hammer.Manager(targetElement, {
+    //   recognizers: [
+    //     [
+    //       Hammer.Pan,
+    //       {
+    //         threshold: 2
+    //       }
+    //     ]
+    //   ]
+    // });
+
+    $swipe.bind(angular.element(targetElement), {
+      'start': _ => isPanning = true,
+      'move': coords => {
+        eventEmitter.trigger('panmove', coords);
+      },
+      'end': coords => {
+        isPanning = false;
+        eventEmitter.trigger('panend', coords);
+      }
     });
 
     Card.appendToParent(targetElement);
@@ -515,4 +530,11 @@ Card.rotation = (coordinateX, coordinateY, element, maxRotation) => {
 Card.THROW_IN = 'in';
 Card.THROW_OUT = 'out';
 
-export default Card;
+return {
+  card: Card
+};
+}]);
+
+
+
+export default modName;

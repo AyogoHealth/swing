@@ -67,7 +67,7 @@ const Card = (stack, targetElement) => {
     eventEmitter = Sister();
     springSystem = stack.getSpringSystem();
     springThrowIn = springSystem.createSpring(250, 10);
-    springThrowOut = springSystem.createSpring(500, 20);
+    springThrowOut = springSystem.createSpring(75, 20);
     lastThrow = {};
     lastTranslate = {
       coordinateX: 0,
@@ -315,7 +315,7 @@ const Card = (stack, targetElement) => {
           throwDirection: lastThrow.direction
         });
       } else if (where === Card.THROW_OUT) {
-        springThrowOut.setCurrentValue(0).setAtRest().setVelocity(100).setEndValue(1);
+        springThrowOut.setCurrentValue(0).setAtRest().setVelocity(1).setEndValue(1);
 
         eventEmitter.trigger('throwout', {
           target: targetElement,

@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", {
  * @returns {Array}
  */
 var elementChildren = function elementChildren(element) {
-  return Array.from(element.childNodes).filter(function (elem) {
+  return Array.prototype.filter.call(element.childNodes, function (elem) {
     return elem.nodeType === 1;
   });
 };
@@ -25,5 +25,19 @@ var isTouchDevice = function isTouchDevice() {
   return window.outerWidth < 769;
 };
 
+var assign = function assign(dst) {
+  // Polyfill impl taken roughly from MDN
+  for (var index = 1; index < arguments.length; index++) {
+    var nextSource = arguments[index];
+    for (var key in nextSource) {
+      if (Object.prototype.hasOwnProperty.call(nextSource, key)) {
+        dst[key] = nextSource[key];
+      }
+    }
+  }
+  return dst;
+};
+
 exports.elementChildren = elementChildren;
 exports.isTouchDevice = isTouchDevice;
+exports.assign = assign;

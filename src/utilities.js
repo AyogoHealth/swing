@@ -7,7 +7,7 @@
  * @returns {Array}
  */
 const elementChildren = (element) => {
-  return Array.from(element.childNodes).filter(elem => elem.nodeType === 1);
+  return Array.prototype.filter.call(element.childNodes, elem => elem.nodeType === 1);
 };
 
 /**
@@ -18,7 +18,21 @@ const isTouchDevice = () => {
   return window.outerWidth < 769;
 };
 
+const assign = function(dst) {
+  // Polyfill impl taken roughly from MDN
+  for (var index = 1; index < arguments.length; index++) {
+    var nextSource = arguments[index];
+    for (let key in nextSource) {
+      if (Object.prototype.hasOwnProperty.call(nextSource, key)) {
+        dst[key] = nextSource[key];
+      }
+    }
+  }
+  return dst;
+}
+
 export {
   elementChildren,
-  isTouchDevice
+  isTouchDevice,
+  assign
 };

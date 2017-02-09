@@ -7,7 +7,8 @@ import raf from 'raf';
 import Direction from './Direction';
 import {
   elementChildren,
-  isTouchDevice
+  isTouchDevice,
+  assign
 } from './utilities';
 
 const modName = 'card';
@@ -405,7 +406,7 @@ Card.makeConfig = (config = {}) => {
     transform: Card.transform
   };
 
-  return Object.assign({}, defaultConfig, config);
+  return assign({}, defaultConfig, config);
 };
 
 /**

@@ -99,7 +99,7 @@ angular.module(modName, ['card'])
      * @returns {Card|null}
      */
     stack.getCard = (element) => {
-      const group = index[index.findIndex(i => element.id === i.element.id)];
+      const group = index.filter(e => e.element === element)[0];
       if (group) {
         return group.card;
       }
@@ -114,8 +114,8 @@ angular.module(modName, ['card'])
      * @returns {null}
      */
     stack.destroyCard = (card) => {
-      while(index.findIndex(i => card.id === i.element.id) > -1) {
-        index.splice(index.findIndex(i => card.id === i.element.id), 1);
+      while(index.filter(e => e.element === card).length > 0) {
+        index = index.filter(e => e.element !== card);
       }
       return index;
     };

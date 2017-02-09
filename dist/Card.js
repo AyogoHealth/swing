@@ -94,7 +94,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       eventEmitter = (0, _sister2.default)();
       springSystem = stack.getSpringSystem();
       springThrowIn = springSystem.createSpring(250, 10);
-      springThrowOut = springSystem.createSpring(500, 20);
+      springThrowOut = springSystem.createSpring(75, 20);
       lastThrow = {};
       lastTranslate = {
         coordinateX: 0,
@@ -337,7 +337,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
             throwDirection: lastThrow.direction
           });
         } else if (where === Card.THROW_OUT) {
-          springThrowOut.setCurrentValue(0).setAtRest().setVelocity(100).setEndValue(1);
+          springThrowOut.setCurrentValue(0).setAtRest().setVelocity(1).setEndValue(1);
 
           eventEmitter.trigger('throwout', {
             target: targetElement,
@@ -425,7 +425,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       transform: Card.transform
     };
 
-    return Object.assign({}, defaultConfig, config);
+    return (0, _utilities.assign)({}, defaultConfig, config);
   };
 
   /**

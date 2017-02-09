@@ -107,10 +107,9 @@ angular.module(modName, ['card']).factory(modName, ['card', function (Card) {
      * @returns {Card|null}
      */
     stack.getCard = function (element) {
-      var group = _.find(index, {
-        element: element
-      });
-
+      var group = index.filter(function (e) {
+        return e.element === element;
+      })[0];
       if (group) {
         return group.card;
       }
@@ -125,12 +124,12 @@ angular.module(modName, ['card']).factory(modName, ['card', function (Card) {
      * @returns {null}
      */
     stack.destroyCard = function (card) {
-      while (index.findIndex(function (elem) {
-        return card.id === elem.id;
-      }) > -1) {
-        index.splice(index.findIndex(function (elem) {
-          return card.id === elem.id;
-        }), 1);
+      while (index.filter(function (e) {
+        return e.element === card;
+      }).length > 0) {
+        index = index.filter(function (e) {
+          return e.element !== card;
+        });
       }
       return index;
     };

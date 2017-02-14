@@ -1,16 +1,20 @@
-import _ from 'lodash';
 import Sister from 'sister';
-import Hammer from 'hammerjs';
+import * as angular from 'angular';
+import * as ngTouch from 'angular-touch';
 import rebound from 'rebound';
 import vendorPrefix from 'vendor-prefix';
 import raf from 'raf';
 import Direction from './Direction';
 import {
   elementChildren,
-  isTouchDevice
+  isTouchDevice,
+  assign
 } from './utilities';
 
-/**
+const modName = 'card';
+angular.module(modName, ['ngTouch'])
+.factory(modName, ['$swipe', function($swipe) {
+  /**
  * @param {number} fromX
  * @param {number} fromY
  * @param {Direction[]} allowedDirections
@@ -49,7 +53,6 @@ const Card = (stack, targetElement) => {
   let lastTranslate;
   let lastX;
   let lastY;
-  let mc;
   let onSpringUpdate;
   let springSystem;
   let springThrowIn;
@@ -57,6 +60,7 @@ const Card = (stack, targetElement) => {
   let throwDirectionToEventName;
   let throwOutDistance;
   let throwWhere;
+  let startCoords;
 
   const construct = () => {
     card = {};
@@ -64,7 +68,7 @@ const Card = (stack, targetElement) => {
     eventEmitter = Sister();
     springSystem = stack.getSpringSystem();
     springThrowIn = springSystem.createSpring(250, 10);
-    springThrowOut = springSystem.createSpring(500, 20);
+    springThrowOut = springSystem.createSpring(75, 20);
     lastThrow = {};
     lastTranslate = {
       coordinateX: 0,
@@ -86,22 +90,32 @@ const Card = (stack, targetElement) => {
 
     throwOutDistance = config.throwOutDistance(config.minThrowOutDistance, config.maxThrowOutDistance);
 
-    mc = new Hammer.Manager(targetElement, {
-      recognizers: [
-        [
-          Hammer.Pan,
-          {
-            threshold: 2
-          }
-        ]
-      ]
+    $swipe.bind(angular.element(targetElement), {
+      'start': coords => {
+        startCoords = coords;
+        isPanning = true;
+      },
+      'move': coords => {
+        let deltaCoords = {
+          x: coords.x - startCoords.x,
+          y: coords.y - startCoords.y
+        }
+        eventEmitter.trigger('panmove', deltaCoords);
+      },
+      'end': coords => {
+        isPanning = false;
+        let deltaCoords = {
+          x: coords.x - startCoords.x,
+          y: coords.y - startCoords.y
+        }
+        eventEmitter.trigger('panend', deltaCoords);
+      }
     });
 
     Card.appendToParent(targetElement);
 
     eventEmitter.on('panstart', () => {
       Card.appendToParent(targetElement);
-
       eventEmitter.trigger('dragstart', {
         target: targetElement
       });
@@ -120,16 +134,16 @@ const Card = (stack, targetElement) => {
       })();
     });
 
-    eventEmitter.on('panmove', (event) => {
-      currentX = event.deltaX;
-      currentY = event.deltaY;
+    eventEmitter.on('panmove', (coords) => {
+      currentX = coords.x;
+      currentY = coords.y;
     });
 
-    eventEmitter.on('panend', (event) => {
+    eventEmitter.on('panend', (coords) => {
       isDraging = false;
 
-      const coordinateX = lastTranslate.coordinateX + event.deltaX;
-      const coordinateY = lastTranslate.coordinateY + event.deltaY;
+      const coordinateX = lastTranslate.coordinateX + coords.x;
+      const coordinateY = lastTranslate.coordinateY + coords.y;
 
       const isThrowOut = config.isThrowOut(
         coordinateX,
@@ -180,12 +194,6 @@ const Card = (stack, targetElement) => {
         targetElement.addEventListener('touchend', () => {
           dragging = false;
         });
-
-        global.addEventListener('touchmove', (event) => {
-          if (dragging) {
-            event.preventDefault();
-          }
-        });
       })();
     } else {
       targetElement.addEventListener('mousedown', () => {
@@ -200,19 +208,6 @@ const Card = (stack, targetElement) => {
         }
       });
     }
-
-    mc.on('panstart', (event) => {
-      isPanning = true;
-    });
-
-    mc.on('panmove', (event) => {
-      eventEmitter.trigger('panmove', event);
-    });
-
-    mc.on('panend', (event) => {
-      isPanning = false;
-      eventEmitter.trigger('panend', event);
-    });
 
     springThrowIn.addListener({
       onSpringAtRest: () => {
@@ -321,7 +316,7 @@ const Card = (stack, targetElement) => {
           throwDirection: lastThrow.direction
         });
       } else if (where === Card.THROW_OUT) {
-        springThrowOut.setCurrentValue(0).setAtRest().setVelocity(100).setEndValue(1);
+        springThrowOut.setCurrentValue(0).setAtRest().setVelocity(1).setEndValue(1);
 
         eventEmitter.trigger('throwout', {
           target: targetElement,
@@ -411,7 +406,7 @@ Card.makeConfig = (config = {}) => {
     transform: Card.transform
   };
 
-  return _.assign({}, defaultConfig, config);
+  return assign({}, defaultConfig, config);
 };
 
 /**
@@ -492,7 +487,7 @@ Card.isThrowOut = (xOffset, yOffset, element, throwOutConfidence) => {
  * @returns {number}
  */
 Card.throwOutDistance = (min, max) => {
-  return _.random(min, max);
+  return Math.random() * (max - min) + min;
 };
 
 /**
@@ -515,4 +510,9 @@ Card.rotation = (coordinateX, coordinateY, element, maxRotation) => {
 Card.THROW_IN = 'in';
 Card.THROW_OUT = 'out';
 
-export default Card;
+return Card;
+}]);
+
+
+
+export default modName;

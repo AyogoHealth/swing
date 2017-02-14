@@ -1,124 +1,129 @@
-import _ from 'lodash';
 import Sister from 'sister';
 import rebound from 'rebound';
 import Card from './Card';
+import * as angular from 'angular';
 
-/**
- * @param {Object} config Stack configuration.
- * @returns {Object} An instance of Stack object.
- */
-const Stack = (config) => {
-  let eventEmitter;
-  let index;
-  let springSystem;
-  let stack;
-
-  const construct = () => {
-    stack = {};
-    springSystem = new rebound.SpringSystem();
-    eventEmitter = Sister();
-    index = [];
-  };
-
-  construct();
-
-  /**
-   * Get the configuration object.
-   *
-   * @returns {Object}
+const modName = 'stack';
+angular.module(modName, ['card'])
+.factory(modName, ['card', function(Card) {
+    /**
+   * @param {Object} config Stack configuration.
+   * @returns {Object} An instance of Stack object.
    */
-  stack.getConfig = () => {
-    return config;
-  };
+  const Stack = (config) => {
+    let eventEmitter;
+    let index;
+    let springSystem;
+    let stack;
 
-  /**
-   * Get a singleton instance of the SpringSystem physics engine.
-   *
-   * @returns {Sister}
-   */
-  stack.getSpringSystem = () => {
-    return springSystem;
-  };
+    const construct = () => {
+      stack = {};
+      springSystem = new rebound.SpringSystem();
+      eventEmitter = Sister();
+      index = [];
+    };
 
-  /**
-   * Proxy to the instance of the event emitter.
-   *
-   * @param {string} eventName
-   * @param {string} listener
-   * @returns {undefined}
-   */
-  stack.on = (eventName, listener) => {
-    eventEmitter.on(eventName, listener);
-  };
+    construct();
 
-  /**
-   * Creates an instance of Card and associates it with an element.
-   *
-   * @param {HTMLElement} element
-   * @returns {Card}
-   */
-  stack.createCard = (element) => {
-    const card = Card(stack, element);
-    const events = [
-      'throwout',
-      'throwoutend',
-      'throwoutleft',
-      'throwoutright',
-      'throwoutup',
-      'throwoutdown',
-      'throwin',
-      'throwinend',
-      'dragstart',
-      'dragmove',
-      'dragend'
-    ];
+    /**
+     * Get the configuration object.
+     *
+     * @returns {Object}
+     */
+    stack.getConfig = () => {
+      return config;
+    };
 
-    // Proxy Card events to the Stack.
-    events.forEach((eventName) => {
-      card.on(eventName, (data) => {
-        eventEmitter.trigger(eventName, data);
+    /**
+     * Get a singleton instance of the SpringSystem physics engine.
+     *
+     * @returns {Sister}
+     */
+    stack.getSpringSystem = () => {
+      return springSystem;
+    };
+
+    /**
+     * Proxy to the instance of the event emitter.
+     *
+     * @param {string} eventName
+     * @param {string} listener
+     * @returns {undefined}
+     */
+    stack.on = (eventName, listener) => {
+      eventEmitter.on(eventName, listener);
+    };
+
+    /**
+     * Creates an instance of Card and associates it with an element.
+     *
+     * @param {HTMLElement} element
+     * @returns {Card}
+     */
+    stack.createCard = (element) => {
+
+      const card = Card(stack, element);
+      const events = [
+        'throwout',
+        'throwoutend',
+        'throwoutleft',
+        'throwoutright',
+        'throwoutup',
+        'throwoutdown',
+        'throwin',
+        'throwinend',
+        'dragstart',
+        'dragmove',
+        'dragend'
+      ];
+
+      // Proxy Card events to the Stack.
+      events.forEach((eventName) => {
+        card.on(eventName, (data) => {
+          eventEmitter.trigger(eventName, data);
+        });
       });
-    });
 
-    index.push({
-      card,
-      element
-    });
+      index.push({
+        card,
+        element
+      });
 
-    return card;
+      return card;
+    };
+
+    /**
+     * Returns an instance of Card associated with an element.
+     *
+     * @param {HTMLElement} element
+     * @returns {Card|null}
+     */
+    stack.getCard = (element) => {
+      const group = index.filter(e => e.element === element)[0];
+      if (group) {
+        return group.card;
+      }
+
+      return null;
+    };
+
+    /**
+     * Remove an instance of Card from the stack index.
+     *
+     * @param {Card} card
+     * @returns {null}
+     */
+    stack.destroyCard = (card) => {
+      while(index.filter(e => e.element === card).length > 0) {
+        index = index.filter(e => e.element !== card);
+      }
+      return index;
+    };
+
+    return stack;
   };
 
-  /**
-   * Returns an instance of Card associated with an element.
-   *
-   * @param {HTMLElement} element
-   * @returns {Card|null}
-   */
-  stack.getCard = (element) => {
-    const group = _.find(index, {
-      element
-    });
+  return Stack;
+}]);
 
-    if (group) {
-      return group.card;
-    }
-
-    return null;
-  };
-
-  /**
-   * Remove an instance of Card from the stack index.
-   *
-   * @param {Card} card
-   * @returns {null}
-   */
-  stack.destroyCard = (card) => {
-    return _.remove(index, {
-      card
-    });
-  };
-
-  return stack;
-};
-
-export default Stack;
+export default modName;

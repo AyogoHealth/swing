@@ -187,13 +187,19 @@ const Card = (stack, targetElement) => {
       (() => {
         let dragging;
 
-        targetElement.addEventListener('touchstart', () => {
+        targetElement.addEventListener('touchstart', (event) => {
           dragging = true;
         });
 
         targetElement.addEventListener('touchend', () => {
           dragging = false;
         });
+
+        global.addEventListener('touchmove', event => {
+          if (dragging) {
+            event.preventDefault();
+          }
+        }, { passive: false });
       })();
     } else {
       targetElement.addEventListener('mousedown', () => {

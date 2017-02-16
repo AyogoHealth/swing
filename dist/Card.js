@@ -208,13 +208,19 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         (function () {
           var dragging = void 0;
 
-          targetElement.addEventListener('touchstart', function () {
+          targetElement.addEventListener('touchstart', function (event) {
             dragging = true;
           });
 
           targetElement.addEventListener('touchend', function () {
             dragging = false;
           });
+
+          global.addEventListener('touchmove', function (event) {
+            if (dragging) {
+              event.preventDefault();
+            }
+          }, { passive: false });
         })();
       } else {
         targetElement.addEventListener('mousedown', function () {

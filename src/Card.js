@@ -61,7 +61,8 @@ const Card = (stack, targetElement) => {
   let throwOutDistance;
   let throwWhere;
   let startCoords;
-
+  let supportPassive;
+  
   const construct = () => {
     card = {};
     config = Card.makeConfig(stack.getConfig());
@@ -74,6 +75,17 @@ const Card = (stack, targetElement) => {
       coordinateX: 0,
       coordinateY: 0
     };
+
+    /* Test for passive event listener support, to make scrolling more efficient */
+    supportPassive = false;
+    try {
+      let opts = Object.defineProperty({}, 'passive', {
+        get: function() { supportPassive = true; }
+      });
+
+      window.addEventListener('test', null, opts);
+    } catch(e) { }
+    /* End test for passive event listener support */
 
         /* Mapping directions to event names */
     throwDirectionToEventName = {};
@@ -199,7 +211,7 @@ const Card = (stack, targetElement) => {
           if (dragging) {
             event.preventDefault();
           }
-        }, { passive: false });
+        }, supportPassive ? { passive: false } : false);
       })();
     } else {
       targetElement.addEventListener('mousedown', () => {

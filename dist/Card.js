@@ -87,6 +87,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
     var throwOutDistance = void 0;
     var throwWhere = void 0;
     var startCoords = void 0;
+    var supportPassive = void 0;
 
     var construct = function construct() {
       card = {};
@@ -100,6 +101,19 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         coordinateX: 0,
         coordinateY: 0
       };
+
+      /* Test for passive event listener support, to make scrolling more efficient */
+      supportPassive = false;
+      try {
+        var opts = Object.defineProperty({}, 'passive', {
+          get: function get() {
+            supportPassive = true;
+          }
+        });
+
+        window.addEventListener('test', null, opts);
+      } catch (e) {}
+      /* End test for passive event listener support */
 
       /* Mapping directions to event names */
       throwDirectionToEventName = {};
@@ -220,7 +234,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
             if (dragging) {
               event.preventDefault();
             }
-          }, { passive: false });
+          }, supportPassive ? { passive: false } : false);
         })();
       } else {
         targetElement.addEventListener('mousedown', function () {

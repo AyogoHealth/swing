@@ -39,7 +39,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var modName = 'card';
-angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swipe) {
+angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function ($swipe, $q) {
   /**
   * @param {number} fromX
   * @param {number} fromY
@@ -94,7 +94,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       config = Card.makeConfig(stack.getConfig());
       eventEmitter = (0, _sister2.default)();
       springSystem = stack.getSpringSystem();
-      springThrowIn = springSystem.createSpring(250, 10);
+      springThrowIn = springSystem.createSpring(75, 10);
       springThrowOut = springSystem.createSpring(75, 20);
       lastThrow = {};
       lastTranslate = {
@@ -419,6 +419,44 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       springThrowOut.destroy();
 
       stack.destroyCard(card);
+    };
+
+    var drag = function drag(duration, distance, direction) {
+      var startTime = new Date().getTime();
+
+      return $q(function (resolve, reject) {
+        var finalX = distance * direction;
+
+        var interval = setInterval(function (_) {
+          var progress = (new Date().getTime() - startTime) / duration;
+          var delta = Math.pow(progress, 2);
+
+          if (progress >= 1) {
+            clearInterval(interval);
+
+            card.throwIn(currentX, 0);
+            eventEmitter.trigger('dragend', { target: targetElement });
+            return resolve();
+          }
+          currentX = finalX * delta;
+          doMove();
+        }, 1);
+      });
+    };
+
+    /**
+     * Wiggles the card right, back to center, and then to the left 
+     *
+     * @param {number} duration
+     * @param {number} distance
+     * @returns {undefined}
+     */
+    card.wiggle = function (duration, distance) {
+      drag(duration, distance, 1).then(function (_) {
+        return setTimeout(function (_) {
+          return drag(duration, distance, -1);
+        }, duration);
+      });
     };
 
     return card;

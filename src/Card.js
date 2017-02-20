@@ -13,7 +13,7 @@ import {
 
 const modName = 'card';
 angular.module(modName, ['ngTouch'])
-.factory(modName, ['$swipe', function($swipe) {
+.factory(modName, ['$swipe', '$q', function($swipe, $q) {
   /**
  * @param {number} fromX
  * @param {number} fromY
@@ -68,7 +68,7 @@ const Card = (stack, targetElement) => {
     config = Card.makeConfig(stack.getConfig());
     eventEmitter = Sister();
     springSystem = stack.getSpringSystem();
-    springThrowIn = springSystem.createSpring(250, 10);
+    springThrowIn = springSystem.createSpring(75, 10);
     springThrowOut = springSystem.createSpring(75, 20);
     lastThrow = {};
     lastTranslate = {
@@ -397,6 +397,41 @@ const Card = (stack, targetElement) => {
 
     stack.destroyCard(card);
   };
+
+  const drag = (duration, distance, direction) => {
+    const startTime = new Date().getTime();
+
+    return $q((resolve, reject) => {
+      let finalX = distance * direction;
+
+      let interval = setInterval(_ => {
+        let progress = (new Date().getTime() - startTime)/duration;
+        let delta = Math.pow(progress, 2);
+ 
+        if(progress >= 1) {
+          clearInterval(interval);
+
+          card.throwIn(currentX, 0);
+          eventEmitter.trigger('dragend', { target: targetElement });
+          return resolve();
+        }
+        currentX = finalX * delta;
+        doMove();
+      }, 1);
+    });
+  }
+
+  /**
+   * Wiggles the card right, back to center, and then to the left 
+   *
+   * @param {number} duration
+   * @param {number} distance
+   * @returns {undefined}
+   */
+  card.wiggle = (duration, distance) => {
+    drag(duration, distance, 1)
+    .then(_ => setTimeout(_ => drag(duration, distance, -1), duration));
+  }
 
   return card;
 };

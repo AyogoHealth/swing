@@ -49,6 +49,7 @@ const Card = (stack, targetElement) => {
   let eventEmitter;
   let isDraging;
   let isPanning;
+  let isThrowing;
   let lastThrow;
   let lastTranslate;
   let lastX;
@@ -75,6 +76,7 @@ const Card = (stack, targetElement) => {
       coordinateX: 0,
       coordinateY: 0
     };
+    let isThrowing = false;
 
     /* Test for passive event listener support, to make scrolling more efficient */
     supportPassive = false;
@@ -381,6 +383,7 @@ const Card = (stack, targetElement) => {
    * @returns {undefined}
    */
   card.throwOut = (coordinateX, coordinateY, direction) => {
+    isThrowing = true;
     throwWhere(Card.THROW_OUT, coordinateX, coordinateY, direction);
   };
 
@@ -407,7 +410,8 @@ const Card = (stack, targetElement) => {
       let step = _ => {
         let progress = (new Date().getTime() - startTime)/duration;
         let delta = Math.pow(progress, 2);
- 
+        
+        if(isDraging || isThrowing) return reject('Stopping due to user interaction');
         if(progress >= 1) {
           card.throwIn(currentX, 0);
           eventEmitter.trigger('dragend', { target: targetElement });
@@ -430,7 +434,8 @@ const Card = (stack, targetElement) => {
    */
   card.wiggle = (duration, distance) => {
     drag(duration, distance, 1)
-    .then(_ => setTimeout(_ => drag(duration, distance, -1), duration));
+    .then(_ => setTimeout(_ => drag(duration, distance, -1), duration))
+    .catch(e => e);
   }
 
   return card;

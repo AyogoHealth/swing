@@ -75,6 +75,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
     var eventEmitter = void 0;
     var isDraging = void 0;
     var isPanning = void 0;
+    var isThrowing = void 0;
     var lastThrow = void 0;
     var lastTranslate = void 0;
     var lastX = void 0;
@@ -101,6 +102,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
         coordinateX: 0,
         coordinateY: 0
       };
+      var isThrowing = false;
 
       /* Test for passive event listener support, to make scrolling more efficient */
       supportPassive = false;
@@ -404,6 +406,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
      * @returns {undefined}
      */
     card.throwOut = function (coordinateX, coordinateY, direction) {
+      isThrowing = true;
       throwWhere(Card.THROW_OUT, coordinateX, coordinateY, direction);
     };
 
@@ -431,6 +434,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
           var progress = (new Date().getTime() - startTime) / duration;
           var delta = Math.pow(progress, 2);
 
+          if (isDraging || isThrowing) return reject('Stopping due to user interaction');
           if (progress >= 1) {
             card.throwIn(currentX, 0);
             eventEmitter.trigger('dragend', { target: targetElement });
@@ -456,6 +460,8 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
         return setTimeout(function (_) {
           return drag(duration, distance, -1);
         }, duration);
+      }).catch(function (e) {
+        return e;
       });
     };
 

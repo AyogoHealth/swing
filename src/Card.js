@@ -2,8 +2,6 @@ import Sister from 'sister';
 import * as angular from 'angular';
 import * as ngTouch from 'angular-touch';
 import rebound from 'rebound';
-import vendorPrefix from 'vendor-prefix';
-import raf from 'raf';
 import Direction from './Direction';
 import {
   elementChildren,
@@ -143,7 +141,7 @@ const Card = (stack, targetElement) => {
         if (isDragging) {
           doMove();
 
-          raf(animation);
+          window.requestAnimationFrame(animation);
         }
       })();
     });
@@ -418,7 +416,7 @@ const Card = (stack, targetElement) => {
           return resolve();
         }
         currentX = finalX * delta;
-        raf(step);
+        window.requestAnimationFrame(step);
         doMove();
       };
       step();
@@ -479,7 +477,7 @@ Card.makeConfig = (config = {}) => {
  * @returns {undefined}
  */
 Card.transform = (element, coordinateX, coordinateY, rotation) => {
-  element.style[vendorPrefix('transform')] = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
+  element.style.transform = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
 };
 
 /**

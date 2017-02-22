@@ -20,14 +20,6 @@ var _rebound = require('rebound');
 
 var _rebound2 = _interopRequireDefault(_rebound);
 
-var _vendorPrefix = require('vendor-prefix');
-
-var _vendorPrefix2 = _interopRequireDefault(_vendorPrefix);
-
-var _raf = require('raf');
-
-var _raf2 = _interopRequireDefault(_raf);
-
 var _Direction = require('./Direction');
 
 var _Direction2 = _interopRequireDefault(_Direction);
@@ -171,7 +163,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
           if (isDragging) {
             doMove();
 
-            (0, _raf2.default)(animation);
+            window.requestAnimationFrame(animation);
           }
         })();
       });
@@ -441,7 +433,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
             return resolve();
           }
           currentX = finalX * delta;
-          (0, _raf2.default)(step);
+          window.requestAnimationFrame(step);
           doMove();
         };
         step();
@@ -504,7 +496,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
    * @returns {undefined}
    */
   Card.transform = function (element, coordinateX, coordinateY, rotation) {
-    element.style[(0, _vendorPrefix2.default)('transform')] = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
+    element.style.transform = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
   };
 
   /**

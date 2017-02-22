@@ -20,14 +20,6 @@ var _rebound = require('rebound');
 
 var _rebound2 = _interopRequireDefault(_rebound);
 
-var _vendorPrefix = require('vendor-prefix');
-
-var _vendorPrefix2 = _interopRequireDefault(_vendorPrefix);
-
-var _raf = require('raf');
-
-var _raf2 = _interopRequireDefault(_raf);
-
 var _Direction = require('./Direction');
 
 var _Direction2 = _interopRequireDefault(_Direction);
@@ -39,7 +31,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var modName = 'card';
-angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swipe) {
+angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function ($swipe, $q) {
   /**
   * @param {number} fromX
   * @param {number} fromY
@@ -73,8 +65,9 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
     var currentY = void 0;
     var doMove = void 0;
     var eventEmitter = void 0;
-    var isDraging = void 0;
+    var isDragging = void 0;
     var isPanning = void 0;
+    var isThrowing = void 0;
     var lastThrow = void 0;
     var lastTranslate = void 0;
     var lastX = void 0;
@@ -94,13 +87,14 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       config = Card.makeConfig(stack.getConfig());
       eventEmitter = (0, _sister2.default)();
       springSystem = stack.getSpringSystem();
-      springThrowIn = springSystem.createSpring(250, 10);
+      springThrowIn = springSystem.createSpring(75, 10);
       springThrowOut = springSystem.createSpring(75, 20);
       lastThrow = {};
       lastTranslate = {
         coordinateX: 0,
         coordinateY: 0
       };
+      var isThrowing = false;
 
       /* Test for passive event listener support, to make scrolling more efficient */
       supportPassive = false;
@@ -163,13 +157,13 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         currentX = 0;
         currentY = 0;
 
-        isDraging = true;
+        isDragging = true;
 
         (function animation() {
-          if (isDraging) {
+          if (isDragging) {
             doMove();
 
-            (0, _raf2.default)(animation);
+            window.requestAnimationFrame(animation);
           }
         })();
       });
@@ -180,7 +174,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       });
 
       eventEmitter.on('panend', function (coords) {
-        isDraging = false;
+        isDragging = false;
 
         var coordinateX = lastTranslate.coordinateX + coords.x;
         var coordinateY = lastTranslate.coordinateY + coords.y;
@@ -210,7 +204,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         });
 
         targetElement.addEventListener('touchend', function () {
-          if (isDraging && !isPanning) {
+          if (isDragging && !isPanning) {
             eventEmitter.trigger('dragend', {
               target: targetElement
             });
@@ -242,7 +236,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         });
 
         targetElement.addEventListener('mouseup', function () {
-          if (isDraging && !isPanning) {
+          if (isDragging && !isPanning) {
             eventEmitter.trigger('dragend', {
               target: targetElement
             });
@@ -258,10 +252,10 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         },
         onSpringUpdate: function onSpringUpdate(spring) {
           var value = spring.getCurrentValue();
-          var coordianteX = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, 0);
-          var coordianteY = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, 0);
+          var coordinateX = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, 0);
+          var coordinateY = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, 0);
 
-          _onSpringUpdate(coordianteX, coordianteY);
+          _onSpringUpdate(coordinateX, coordinateY);
         }
       });
 
@@ -274,21 +268,21 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         onSpringUpdate: function onSpringUpdate(spring) {
           var value = spring.getCurrentValue();
 
-          var coordianteX = void 0;
-          var coordianteY = void 0;
+          var coordinateX = void 0;
+          var coordinateY = void 0;
           var directionFactor = void 0;
 
           if (lastThrow.direction === _Direction2.default.RIGHT || lastThrow.direction === _Direction2.default.LEFT) {
             directionFactor = lastThrow.direction === _Direction2.default.RIGHT ? 1 : -1;
-            coordianteX = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, throwOutDistance * directionFactor);
-            coordianteY = lastThrow.fromY;
+            coordinateX = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, throwOutDistance * directionFactor);
+            coordinateY = lastThrow.fromY;
           } else if (lastThrow.direction === _Direction2.default.UP || lastThrow.direction === _Direction2.default.DOWN) {
             directionFactor = lastThrow.direction === _Direction2.default.DOWN ? 1 : -1;
-            coordianteX = lastThrow.fromX;
-            coordianteY = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, throwOutDistance * directionFactor);
+            coordinateX = lastThrow.fromX;
+            coordinateY = _rebound2.default.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, throwOutDistance * directionFactor);
           }
 
-          _onSpringUpdate(coordianteX, coordianteY);
+          _onSpringUpdate(coordinateX, coordinateY);
         }
       });
 
@@ -305,17 +299,17 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
         lastX = currentX;
         lastY = currentY;
 
-        var coordinateX = lastTranslate.coordinateX + currentX;
-        var coordianteY = lastTranslate.coordinateY + currentY;
-        var rotation = config.rotation(coordinateX, coordianteY, targetElement, config.maxRotation);
+        var coordinateX = lastTranslate.coordinateX + currentX || 0;
+        var coordinateY = lastTranslate.coordinateY + currentY || 0;
+        var rotation = config.rotation(coordinateX, coordinateY, targetElement, config.maxRotation);
 
-        config.transform(targetElement, coordinateX, coordianteY, rotation);
+        config.transform(targetElement, coordinateX, coordinateY, rotation);
 
         eventEmitter.trigger('dragmove', {
           offset: coordinateX,
           target: targetElement,
-          throwDirection: computeDirection(coordinateX, coordianteY, config.allowedDirections),
-          throwOutConfidence: config.throwOutConfidence(coordinateX, coordianteY, targetElement)
+          throwDirection: computeDirection(coordinateX, coordinateY, config.allowedDirections),
+          throwOutConfidence: config.throwOutConfidence(coordinateX, coordinateY, targetElement)
         });
       };
 
@@ -404,6 +398,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
      * @returns {undefined}
      */
     card.throwOut = function (coordinateX, coordinateY, direction) {
+      isThrowing = true;
       throwWhere(Card.THROW_OUT, coordinateX, coordinateY, direction);
     };
 
@@ -419,6 +414,47 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
       springThrowOut.destroy();
 
       stack.destroyCard(card);
+    };
+
+    var drag = function drag(duration, distance, direction) {
+      var startTime = new Date().getTime();
+
+      return $q(function (resolve, reject) {
+        var finalX = distance * direction;
+
+        var step = function step(_) {
+          var progress = (new Date().getTime() - startTime) / duration;
+          var delta = Math.pow(progress, 2);
+
+          if (isDragging || isThrowing) return reject('Stopping due to user interaction');
+          if (progress >= 1) {
+            card.throwIn(currentX, 0);
+            eventEmitter.trigger('dragend', { target: targetElement });
+            return resolve();
+          }
+          currentX = finalX * delta;
+          window.requestAnimationFrame(step);
+          doMove();
+        };
+        step();
+      });
+    };
+
+    /**
+     * Wiggles the card right, back to center, and then to the left 
+     *
+     * @param {number} duration
+     * @param {number} distance
+     * @returns {undefined}
+     */
+    card.wiggle = function (duration, distance) {
+      drag(duration, distance, 1).then(function (_) {
+        return setTimeout(function (_) {
+          return drag(duration, distance, -1);
+        }, duration);
+      }).catch(function (e) {
+        return e;
+      });
     };
 
     return card;
@@ -460,7 +496,7 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', function ($swip
    * @returns {undefined}
    */
   Card.transform = function (element, coordinateX, coordinateY, rotation) {
-    element.style[(0, _vendorPrefix2.default)('transform')] = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
+    element.style.transform = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
   };
 
   /**

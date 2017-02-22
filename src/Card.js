@@ -2,8 +2,6 @@ import Sister from 'sister';
 import * as angular from 'angular';
 import * as ngTouch from 'angular-touch';
 import rebound from 'rebound';
-import vendorPrefix from 'vendor-prefix';
-import raf from 'raf';
 import Direction from './Direction';
 import {
   elementChildren,
@@ -13,7 +11,7 @@ import {
 
 const modName = 'card';
 angular.module(modName, ['ngTouch'])
-.factory(modName, ['$swipe', function($swipe) {
+.factory(modName, ['$swipe', '$q', function($swipe, $q) {
   /**
  * @param {number} fromX
  * @param {number} fromY
@@ -47,8 +45,9 @@ const Card = (stack, targetElement) => {
   let currentY;
   let doMove;
   let eventEmitter;
-  let isDraging;
+  let isDragging;
   let isPanning;
+  let isThrowing;
   let lastThrow;
   let lastTranslate;
   let lastX;
@@ -68,13 +67,14 @@ const Card = (stack, targetElement) => {
     config = Card.makeConfig(stack.getConfig());
     eventEmitter = Sister();
     springSystem = stack.getSpringSystem();
-    springThrowIn = springSystem.createSpring(250, 10);
+    springThrowIn = springSystem.createSpring(75, 10);
     springThrowOut = springSystem.createSpring(75, 20);
     lastThrow = {};
     lastTranslate = {
       coordinateX: 0,
       coordinateY: 0
     };
+    let isThrowing = false;
 
     /* Test for passive event listener support, to make scrolling more efficient */
     supportPassive = false;
@@ -135,13 +135,13 @@ const Card = (stack, targetElement) => {
       currentX = 0;
       currentY = 0;
 
-      isDraging = true;
+      isDragging = true;
 
       (function animation () {
-        if (isDraging) {
+        if (isDragging) {
           doMove();
 
-          raf(animation);
+          window.requestAnimationFrame(animation);
         }
       })();
     });
@@ -152,7 +152,7 @@ const Card = (stack, targetElement) => {
     });
 
     eventEmitter.on('panend', (coords) => {
-      isDraging = false;
+      isDragging = false;
 
       const coordinateX = lastTranslate.coordinateX + coords.x;
       const coordinateY = lastTranslate.coordinateY + coords.y;
@@ -187,7 +187,7 @@ const Card = (stack, targetElement) => {
       });
 
       targetElement.addEventListener('touchend', () => {
-        if (isDraging && !isPanning) {
+        if (isDragging && !isPanning) {
           eventEmitter.trigger('dragend', {
             target: targetElement
           });
@@ -219,7 +219,7 @@ const Card = (stack, targetElement) => {
       });
 
       targetElement.addEventListener('mouseup', () => {
-        if (isDraging && !isPanning) {
+        if (isDragging && !isPanning) {
           eventEmitter.trigger('dragend', {
             target: targetElement
           });
@@ -235,10 +235,10 @@ const Card = (stack, targetElement) => {
       },
       onSpringUpdate: (spring) => {
         const value = spring.getCurrentValue();
-        const coordianteX = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, 0);
-        const coordianteY = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, 0);
+        const coordinateX = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, 0);
+        const coordinateY = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, 0);
 
-        onSpringUpdate(coordianteX, coordianteY);
+        onSpringUpdate(coordinateX, coordinateY);
       }
     });
 
@@ -251,21 +251,21 @@ const Card = (stack, targetElement) => {
       onSpringUpdate: (spring) => {
         const value = spring.getCurrentValue();
 
-        let coordianteX;
-        let coordianteY;
+        let coordinateX;
+        let coordinateY;
         let directionFactor;
 
         if (lastThrow.direction === Direction.RIGHT || lastThrow.direction === Direction.LEFT) {
           directionFactor = lastThrow.direction === Direction.RIGHT ? 1 : -1;
-          coordianteX = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, throwOutDistance * directionFactor);
-          coordianteY = lastThrow.fromY;
+          coordinateX = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromX, throwOutDistance * directionFactor);
+          coordinateY = lastThrow.fromY;
         } else if (lastThrow.direction === Direction.UP || lastThrow.direction === Direction.DOWN) {
           directionFactor = lastThrow.direction === Direction.DOWN ? 1 : -1;
-          coordianteX = lastThrow.fromX;
-          coordianteY = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, throwOutDistance * directionFactor);
+          coordinateX = lastThrow.fromX;
+          coordinateY = rebound.MathUtil.mapValueInRange(value, 0, 1, lastThrow.fromY, throwOutDistance * directionFactor);
         }
 
-        onSpringUpdate(coordianteX, coordianteY);
+        onSpringUpdate(coordinateX, coordinateY);
       }
     });
 
@@ -282,17 +282,17 @@ const Card = (stack, targetElement) => {
       lastX = currentX;
       lastY = currentY;
 
-      const coordinateX = lastTranslate.coordinateX + currentX;
-      const coordianteY = lastTranslate.coordinateY + currentY;
-      const rotation = config.rotation(coordinateX, coordianteY, targetElement, config.maxRotation);
+      const coordinateX = (lastTranslate.coordinateX + currentX) || 0;
+      const coordinateY = (lastTranslate.coordinateY + currentY) || 0;
+      const rotation = config.rotation(coordinateX, coordinateY, targetElement, config.maxRotation);
 
-      config.transform(targetElement, coordinateX, coordianteY, rotation);
-
+      config.transform(targetElement, coordinateX, coordinateY, rotation);
+      
       eventEmitter.trigger('dragmove', {
         offset: coordinateX,
         target: targetElement,
-        throwDirection: computeDirection(coordinateX, coordianteY, config.allowedDirections),
-        throwOutConfidence: config.throwOutConfidence(coordinateX, coordianteY, targetElement)
+        throwDirection: computeDirection(coordinateX, coordinateY, config.allowedDirections),
+        throwOutConfidence: config.throwOutConfidence(coordinateX, coordinateY, targetElement)
       });
     };
 
@@ -381,6 +381,7 @@ const Card = (stack, targetElement) => {
    * @returns {undefined}
    */
   card.throwOut = (coordinateX, coordinateY, direction) => {
+    isThrowing = true;
     throwWhere(Card.THROW_OUT, coordinateX, coordinateY, direction);
   };
 
@@ -397,6 +398,43 @@ const Card = (stack, targetElement) => {
 
     stack.destroyCard(card);
   };
+
+  const drag = (duration, distance, direction) => {
+    const startTime = new Date().getTime();
+
+    return $q((resolve, reject) => {
+      let finalX = distance * direction;
+      
+      let step = _ => {
+        let progress = (new Date().getTime() - startTime)/duration;
+        let delta = Math.pow(progress, 2);
+        
+        if(isDragging || isThrowing) return reject('Stopping due to user interaction');
+        if(progress >= 1) {
+          card.throwIn(currentX, 0);
+          eventEmitter.trigger('dragend', { target: targetElement });
+          return resolve();
+        }
+        currentX = finalX * delta;
+        window.requestAnimationFrame(step);
+        doMove();
+      };
+      step();
+    });
+  }
+
+  /**
+   * Wiggles the card right, back to center, and then to the left 
+   *
+   * @param {number} duration
+   * @param {number} distance
+   * @returns {undefined}
+   */
+  card.wiggle = (duration, distance) => {
+    drag(duration, distance, 1)
+    .then(_ => setTimeout(_ => drag(duration, distance, -1), duration))
+    .catch(e => e);
+  }
 
   return card;
 };
@@ -439,7 +477,7 @@ Card.makeConfig = (config = {}) => {
  * @returns {undefined}
  */
 Card.transform = (element, coordinateX, coordinateY, rotation) => {
-  element.style[vendorPrefix('transform')] = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
+  element.style.transform = 'translate3d(0, 0, 0) translate(' + coordinateX + 'px, ' + coordinateY + 'px) rotate(' + rotation + 'deg)';
 };
 
 /**

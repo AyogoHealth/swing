@@ -282,12 +282,12 @@ const Card = (stack, targetElement) => {
       lastX = currentX;
       lastY = currentY;
 
-      const coordinateX = lastTranslate.coordinateX + currentX;
-      const coordianteY = lastTranslate.coordinateY + currentY;
+      const coordinateX = (lastTranslate.coordinateX + currentX) || 0;
+      const coordianteY = (lastTranslate.coordinateY + currentY) || 0;
       const rotation = config.rotation(coordinateX, coordianteY, targetElement, config.maxRotation);
 
       config.transform(targetElement, coordinateX, coordianteY, rotation);
-
+      
       eventEmitter.trigger('dragmove', {
         offset: coordinateX,
         target: targetElement,
@@ -403,21 +403,21 @@ const Card = (stack, targetElement) => {
 
     return $q((resolve, reject) => {
       let finalX = distance * direction;
-
-      let interval = setInterval(_ => {
+      
+      let step = _ => {
         let progress = (new Date().getTime() - startTime)/duration;
         let delta = Math.pow(progress, 2);
  
         if(progress >= 1) {
-          clearInterval(interval);
-
           card.throwIn(currentX, 0);
           eventEmitter.trigger('dragend', { target: targetElement });
           return resolve();
         }
         currentX = finalX * delta;
+        raf(step);
         doMove();
-      }, 1);
+      };
+      step();
     });
   }
 

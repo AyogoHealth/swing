@@ -305,8 +305,8 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
         lastX = currentX;
         lastY = currentY;
 
-        var coordinateX = lastTranslate.coordinateX + currentX;
-        var coordianteY = lastTranslate.coordinateY + currentY;
+        var coordinateX = lastTranslate.coordinateX + currentX || 0;
+        var coordianteY = lastTranslate.coordinateY + currentY || 0;
         var rotation = config.rotation(coordinateX, coordianteY, targetElement, config.maxRotation);
 
         config.transform(targetElement, coordinateX, coordianteY, rotation);
@@ -427,20 +427,20 @@ angular.module(modName, ['ngTouch']).factory(modName, ['$swipe', '$q', function 
       return $q(function (resolve, reject) {
         var finalX = distance * direction;
 
-        var interval = setInterval(function (_) {
+        var step = function step(_) {
           var progress = (new Date().getTime() - startTime) / duration;
           var delta = Math.pow(progress, 2);
 
           if (progress >= 1) {
-            clearInterval(interval);
-
             card.throwIn(currentX, 0);
             eventEmitter.trigger('dragend', { target: targetElement });
             return resolve();
           }
           currentX = finalX * delta;
+          (0, _raf2.default)(step);
           doMove();
-        }, 1);
+        };
+        step();
       });
     };
 

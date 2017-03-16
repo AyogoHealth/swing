@@ -102,129 +102,132 @@ const Card = (stack, targetElement) => {
 
     throwOutDistance = config.throwOutDistance(config.minThrowOutDistance, config.maxThrowOutDistance);
 
-    $swipe.bind(angular.element(targetElement), {
-      'start': coords => {
-        startCoords = coords;
-        isPanning = true;
-      },
-      'move': coords => {
-        let deltaCoords = {
-          x: coords.x - startCoords.x,
-          y: coords.y - startCoords.y
+    // If swiping is enabled, setup click/touch listeners
+    if(config.enableSwiping) {
+      $swipe.bind(angular.element(targetElement), {
+        'start': coords => {
+          startCoords = coords;
+          isPanning = true;
+        },
+        'move': coords => {
+          let deltaCoords = {
+            x: coords.x - startCoords.x,
+            y: coords.y - startCoords.y
+          }
+          eventEmitter.trigger('panmove', deltaCoords);
+        },
+        'end': coords => {
+          isPanning = false;
+          let deltaCoords = {
+            x: coords.x - startCoords.x,
+            y: coords.y - startCoords.y
+          }
+          eventEmitter.trigger('panend', deltaCoords);
         }
-        eventEmitter.trigger('panmove', deltaCoords);
-      },
-      'end': coords => {
-        isPanning = false;
-        let deltaCoords = {
-          x: coords.x - startCoords.x,
-          y: coords.y - startCoords.y
-        }
-        eventEmitter.trigger('panend', deltaCoords);
-      }
-    });
+      });
 
-    Card.appendToParent(targetElement);
-
-    eventEmitter.on('panstart', () => {
       Card.appendToParent(targetElement);
-      eventEmitter.trigger('dragstart', {
-        target: targetElement
+
+      eventEmitter.on('panstart', () => {
+        Card.appendToParent(targetElement);
+        eventEmitter.trigger('dragstart', {
+          target: targetElement
+        });
+
+        currentX = 0;
+        currentY = 0;
+
+        isDragging = true;
+
+        (function animation () {
+          if (isDragging) {
+            doMove();
+
+            window.requestAnimationFrame(animation);
+          }
+        })();
       });
 
-      currentX = 0;
-      currentY = 0;
+      eventEmitter.on('panmove', (coords) => {
+        currentX = coords.x;
+        currentY = coords.y;
+      });
 
-      isDragging = true;
+      eventEmitter.on('panend', (coords) => {
+        isDragging = false;
 
-      (function animation () {
-        if (isDragging) {
-          doMove();
+        const coordinateX = lastTranslate.coordinateX + coords.x;
+        const coordinateY = lastTranslate.coordinateY + coords.y;
 
-          window.requestAnimationFrame(animation);
+        const isThrowOut = config.isThrowOut(
+          coordinateX,
+          coordinateY,
+          targetElement,
+          config.throwOutConfidence(coordinateX, coordinateY, targetElement)
+        );
+
+        // Not really sure about computing direction here and filtering on directions here.
+        // It adds more logic. Any suggestion will be appreciated.
+        const direction = computeDirection(coordinateX, coordinateY, config.allowedDirections);
+
+        if (isThrowOut && direction !== Direction.INVALID) {
+          card.throwOut(coordinateX, coordinateY, direction);
+        } else {
+          card.throwIn(coordinateX, coordinateY, direction);
         }
-      })();
-    });
 
-    eventEmitter.on('panmove', (coords) => {
-      currentX = coords.x;
-      currentY = coords.y;
-    });
-
-    eventEmitter.on('panend', (coords) => {
-      isDragging = false;
-
-      const coordinateX = lastTranslate.coordinateX + coords.x;
-      const coordinateY = lastTranslate.coordinateY + coords.y;
-
-      const isThrowOut = config.isThrowOut(
-        coordinateX,
-        coordinateY,
-        targetElement,
-        config.throwOutConfidence(coordinateX, coordinateY, targetElement)
-      );
-
-      // Not really sure about computing direction here and filtering on directions here.
-      // It adds more logic. Any suggestion will be appreciated.
-      const direction = computeDirection(coordinateX, coordinateY, config.allowedDirections);
-
-      if (isThrowOut && direction !== Direction.INVALID) {
-        card.throwOut(coordinateX, coordinateY, direction);
-      } else {
-        card.throwIn(coordinateX, coordinateY, direction);
-      }
-
-      eventEmitter.trigger('dragend', {
-        target: targetElement
-      });
-    });
-
-    // "mousedown" event fires late on touch enabled devices, thus listening
-    // to the touchstart event for touch enabled devices and mousedown otherwise.
-    if (isTouchDevice()) {
-      targetElement.addEventListener('touchstart', () => {
-        eventEmitter.trigger('panstart');
+        eventEmitter.trigger('dragend', {
+          target: targetElement
+        });
       });
 
-      targetElement.addEventListener('touchend', () => {
-        if (isDragging && !isPanning) {
-          eventEmitter.trigger('dragend', {
-            target: targetElement
-          });
-        }
-      });
-
-      // Disable scrolling while dragging the element on the touch enabled devices.
-      // @see http://stackoverflow.com/a/12090055/368691
-      (() => {
-        let dragging;
-
-        targetElement.addEventListener('touchstart', (event) => {
-          dragging = true;
+      // "mousedown" event fires late on touch enabled devices, thus listening
+      // to the touchstart event for touch enabled devices and mousedown otherwise.
+      if (isTouchDevice()) {
+        targetElement.addEventListener('touchstart', () => {
+          eventEmitter.trigger('panstart');
         });
 
         targetElement.addEventListener('touchend', () => {
-          dragging = false;
+          if (isDragging && !isPanning) {
+            eventEmitter.trigger('dragend', {
+              target: targetElement
+            });
+          }
         });
 
-        global.addEventListener('touchmove', event => {
-          if (dragging) {
-            event.preventDefault();
-          }
-        }, supportPassive ? { passive: false } : false);
-      })();
-    } else {
-      targetElement.addEventListener('mousedown', () => {
-        eventEmitter.trigger('panstart');
-      });
+        // Disable scrolling while dragging the element on the touch enabled devices.
+        // @see http://stackoverflow.com/a/12090055/368691
+        (() => {
+          let dragging;
 
-      targetElement.addEventListener('mouseup', () => {
-        if (isDragging && !isPanning) {
-          eventEmitter.trigger('dragend', {
-            target: targetElement
+          targetElement.addEventListener('touchstart', (event) => {
+            dragging = true;
           });
-        }
-      });
+
+          targetElement.addEventListener('touchend', () => {
+            dragging = false;
+          });
+
+          global.addEventListener('touchmove', event => {
+            if (dragging) {
+              event.preventDefault();
+            }
+          }, supportPassive ? { passive: false } : false);
+        })();
+      } else {
+        targetElement.addEventListener('mousedown', () => {
+          eventEmitter.trigger('panstart');
+        });
+
+        targetElement.addEventListener('mouseup', () => {
+          if (isDragging && !isPanning) {
+            eventEmitter.trigger('dragend', {
+              target: targetElement
+            });
+          }
+        });
+      }
     }
 
     springThrowIn.addListener({
@@ -459,7 +462,8 @@ Card.makeConfig = (config = {}) => {
     rotation: Card.rotation,
     throwOutConfidence: Card.throwOutConfidence,
     throwOutDistance: Card.throwOutDistance,
-    transform: Card.transform
+    transform: Card.transform,
+    enableSwiping: true
   };
 
   return assign({}, defaultConfig, config);

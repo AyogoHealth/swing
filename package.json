@@ -5,10 +5,9 @@
     "url": "http://gajus.com"
   },
   "dependencies": {
-    "angular": "^1.5.3",
-    "angular-touch": "^1.5.3",
     "rebound": "^0.0.13",
-    "sister": "^3.0.0"
+    "sister": "^3.0.0",
+    "es6-promise": "^4.0.3"
   },
   "description": "A swipeable cards interface. The swipe-left/swipe-right for yes/no input. As seen in apps like Jelly and Tinder.",
   "devDependencies": {

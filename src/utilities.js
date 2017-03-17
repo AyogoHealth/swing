@@ -31,8 +31,14 @@ const assign = function(dst) {
   return dst;
 }
 
+// Replaces element.on from angular and Jquery | http://stackoverflow.com/a/8797106
+const addListenerMulti = (el, s, fn) => {
+  return s.split(' ').forEach(e => el.addEventListener(e, fn, false));
+}
+
 export {
   elementChildren,
   isTouchDevice,
-  assign
+  assign,
+  addListenerMulti
 };

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -38,6 +38,14 @@ var assign = function assign(dst) {
   return dst;
 };
 
+// Replaces element.on from angular and Jquery | http://stackoverflow.com/a/8797106
+var addListenerMulti = function addListenerMulti(el, s, fn) {
+  return s.split(' ').forEach(function (e) {
+    return el.addEventListener(e, fn, false);
+  });
+};
+
 exports.elementChildren = elementChildren;
 exports.isTouchDevice = isTouchDevice;
 exports.assign = assign;
+exports.addListenerMulti = addListenerMulti;

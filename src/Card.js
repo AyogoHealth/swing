@@ -1,6 +1,5 @@
 import Sister from 'sister';
-import * as angular from 'angular';
-import * as ngTouch from 'angular-touch';
+import 'es6-promise/auto';
 import rebound from 'rebound';
 import Direction from './Direction';
 import {
@@ -8,11 +7,9 @@ import {
   isTouchDevice,
   assign
 } from './utilities';
+import bindSwipe from './swipe';
 
-const modName = 'card';
-angular.module(modName, ['ngTouch'])
-.factory(modName, ['$swipe', '$q', function($swipe, $q) {
-  /**
+/**
  * @param {number} fromX
  * @param {number} fromY
  * @param {Direction[]} allowedDirections
@@ -104,7 +101,7 @@ const Card = (stack, targetElement) => {
 
     // If swiping is enabled, setup click/touch listeners
     if(config.enableSwiping) {
-      $swipe.bind(angular.element(targetElement), {
+      bindSwipe(targetElement, {
         'start': coords => {
           startCoords = coords;
           isPanning = true;
@@ -405,7 +402,7 @@ const Card = (stack, targetElement) => {
   const drag = (duration, distance, direction) => {
     const startTime = new Date().getTime();
 
-    return $q((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let finalX = distance * direction;
       
       let step = _ => {
@@ -452,8 +449,7 @@ Card.makeConfig = (config = {}) => {
   const defaultConfig = {
     allowedDirections: [
       Direction.RIGHT,
-      Direction.LEFT,
-      Direction.UP
+      Direction.LEFT
     ],
     isThrowOut: Card.isThrowOut,
     maxRotation: 20,
@@ -570,9 +566,5 @@ Card.rotation = (coordinateX, coordinateY, element, maxRotation) => {
 Card.THROW_IN = 'in';
 Card.THROW_OUT = 'out';
 
-return Card;
-}]);
 
-
-
-export default modName;
+export default Card;

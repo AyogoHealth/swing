@@ -84,12 +84,6 @@ function bindSwipe(element, eventHandlers, pointerTypes) {
   (0, _utilities.addListenerMulti)(element, getEvents(pointerTypes, 'move'), function (event) {
     if (!active) return;
 
-    // Android will send a touchcancel if it thinks we're starting to scroll.
-    // So when the total distance (+ or - or both) exceeds 10px in either direction,
-    // we either:
-    // - On totalX > totalY, we send preventDefault() and treat this as a swipe.
-    // - On totalY > totalX, we let the browser handle it as a scroll.
-
     if (!startCoords) return;
     var coords = getCoordinates(event);
 

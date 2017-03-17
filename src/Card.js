@@ -455,8 +455,7 @@ Card.makeConfig = (config = {}) => {
   const defaultConfig = {
     allowedDirections: [
       Direction.RIGHT,
-      Direction.LEFT,
-      Direction.UP
+      Direction.LEFT
     ],
     isThrowOut: Card.isThrowOut,
     maxRotation: 20,

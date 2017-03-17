@@ -473,7 +473,7 @@ Card.makeConfig = function () {
   var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   var defaultConfig = {
-    allowedDirections: [_Direction2.default.RIGHT, _Direction2.default.LEFT, _Direction2.default.UP],
+    allowedDirections: [_Direction2.default.RIGHT, _Direction2.default.LEFT],
     isThrowOut: Card.isThrowOut,
     maxRotation: 20,
     maxThrowOutDistance: 500,

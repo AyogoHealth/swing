@@ -4,11 +4,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var Direction = {
-  DOWN: Symbol('DOWN'),
-  INVALID: Symbol('INVALID'),
-  LEFT: Symbol('LEFT'),
-  RIGHT: Symbol('RIGHT'),
-  UP: Symbol('UP')
+  DOWN: 'DOWN',
+  INVALID: 'INVALID',
+  LEFT: 'LEFT',
+  RIGHT: 'RIGHT',
+  UP: 'UP'
 };
 
 exports.default = Direction;

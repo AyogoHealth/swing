@@ -113,12 +113,6 @@ const Card = (stack, targetElement) => {
           }
           eventEmitter.trigger('panmove', deltaCoords);
         },
-        'cancel': function(event) {
-          if(event.type==="touchmove") {
-            let coords = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-            this.move(coords);
-          }
-        },
         'end': coords => {
           isPanning = false;
           let deltaCoords = {

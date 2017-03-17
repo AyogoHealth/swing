@@ -132,12 +132,6 @@ var Card = function Card(stack, targetElement) {
           };
           eventEmitter.trigger('panmove', deltaCoords);
         },
-        'cancel': function cancel(event) {
-          if (event.type === "touchmove") {
-            var coords = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-            this.move(coords);
-          }
-        },
         'end': function end(coords) {
           isPanning = false;
           var deltaCoords = {

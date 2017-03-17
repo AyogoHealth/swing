@@ -1,8 +1,8 @@
 import {addListenerMulti} from './utilities';
 
-var MOVE_BUFFER_RADIUS = 10;
+let MOVE_BUFFER_RADIUS = 10;
 
-var POINTER_EVENTS = {
+let POINTER_EVENTS = {
   'mouse': {
     start: 'mousedown',
     move: 'mousemove',
@@ -23,9 +23,9 @@ var POINTER_EVENTS = {
 };
 
 function getCoordinates(event) {
-  var originalEvent = event.originalEvent || event;
-  var touches = originalEvent.touches && originalEvent.touches.length ? originalEvent.touches : [originalEvent];
-  var e = (originalEvent.changedTouches && originalEvent.changedTouches[0]) || touches[0];
+  let originalEvent = event.originalEvent || event;
+  let touches = originalEvent.touches && originalEvent.touches.length ? originalEvent.touches : [originalEvent];
+  let e = (originalEvent.changedTouches && originalEvent.changedTouches[0]) || touches[0];
 
   return {
     x: e.clientX,
@@ -34,9 +34,9 @@ function getCoordinates(event) {
 }
 
 function getEvents(pointerTypes, eventType) {
-  var res = [];
+  let res = [];
   pointerTypes.forEach(function(pointerType) {
-    var eventName = POINTER_EVENTS[pointerType][eventType];
+    let eventName = POINTER_EVENTS[pointerType][eventType];
     if (eventName) {
       res.push(eventName);
     }
@@ -46,13 +46,13 @@ function getEvents(pointerTypes, eventType) {
 
 function bindSwipe(element, eventHandlers, pointerTypes) {
   // Absolute total movement, used to control swipe vs. scroll.
-  var totalX, totalY;
+  let totalX, totalY;
   // Coordinates of the start position.
-  var startCoords;
+  let startCoords;
   // Last event's position.
-  var lastPos;
+  let lastPos;
   // Whether a swipe is active.
-  var active = false;
+  let active = false;
 
   pointerTypes = pointerTypes || ['mouse', 'touch', 'pointer'];
   addListenerMulti(element, getEvents(pointerTypes, 'start'), function(event) {
@@ -65,7 +65,7 @@ function bindSwipe(element, eventHandlers, pointerTypes) {
       eventHandlers['start'](startCoords, event);
     }
   });
-  var events = getEvents(pointerTypes, 'cancel');
+  let events = getEvents(pointerTypes, 'cancel');
   if (events) {
     addListenerMulti(element, events, function(event) {
       active = false;
@@ -79,7 +79,7 @@ function bindSwipe(element, eventHandlers, pointerTypes) {
     if (!active) return;
 
     if (!startCoords) return;
-    var coords = getCoordinates(event);
+    let coords = getCoordinates(event);
 
     totalX += Math.abs(coords.x - lastPos.x);
     totalY += Math.abs(coords.y - lastPos.y);

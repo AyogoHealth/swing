@@ -52,11 +52,12 @@ function getEvents(pointerTypes, eventType) {
 
 function bindSwipe(element, eventHandlers, pointerTypes) {
   // Absolute total movement, used to control swipe vs. scroll.
-  var totalX, totalY;
+  var totalX = void 0,
+      totalY = void 0;
   // Coordinates of the start position.
-  var startCoords;
+  var startCoords = void 0;
   // Last event's position.
-  var lastPos;
+  var lastPos = void 0;
   // Whether a swipe is active.
   var active = false;
 

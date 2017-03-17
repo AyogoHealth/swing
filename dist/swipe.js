@@ -6,7 +6,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _utilities = require('./utilities');
 
-var MOVE_BUFFER_RADIUS = 10;
+var MOVE_BUFFER_RADIUS = 10; // Derived from Angular's $swipe, modified to allow for vertical swiping
+// Ref: https://github.com/angular/angular.js/blob/master/src/ngTouch/swipe.js#L23
 
 var POINTER_EVENTS = {
   'mouse': {

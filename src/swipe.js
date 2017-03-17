@@ -1,3 +1,6 @@
+// Derived from Angular's $swipe, modified to allow for vertical swiping
+// Ref: https://github.com/angular/angular.js/blob/master/src/ngTouch/swipe.js#L23
+
 import {addListenerMulti} from './utilities';
 
 let MOVE_BUFFER_RADIUS = 10;

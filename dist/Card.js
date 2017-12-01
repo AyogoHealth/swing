@@ -8,8 +8,6 @@ var _sister = require('sister');
 
 var _sister2 = _interopRequireDefault(_sister);
 
-require('es6-promise/auto');
-
 var _rebound = require('rebound');
 
 var _rebound2 = _interopRequireDefault(_rebound);

@@ -1,5 +1,4 @@
 import Sister from 'sister';
-import 'es6-promise/auto';
 import rebound from 'rebound';
 import Direction from './Direction';
 import {
